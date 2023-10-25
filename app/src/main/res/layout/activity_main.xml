@@ -7,7 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/line"/>
     <View
+        android:id="@+id/line"
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:background="@color/silver"
@@ -16,8 +23,9 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/tabArea"
-        android:layout_height="70dp"
+        app:layout_constraintHeight_percent="0.08"
         android:layout_width="match_parent"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:paddingVertical="15dp">
 
@@ -34,7 +42,7 @@
         <ImageView
             android:id="@+id/graphBtn"
             app:layout_constraintStart_toEndOf="@id/homeBtn"
-            app:layout_constraintEnd_toStartOf="@id/notificationBtn"
+            app:layout_constraintEnd_toStartOf="@id/profileBtn"
             android:src="@mipmap/graph"
             android:layout_height="match_parent"
             android:layout_width="wrap_content"
@@ -42,18 +50,8 @@
             android:scaleType="fitCenter"
             />
         <ImageView
-            android:id="@+id/notificationBtn"
-            app:layout_constraintStart_toEndOf="@id/graphBtn"
-            app:layout_constraintEnd_toStartOf="@id/profileBtn"
-            android:src="@mipmap/notification"
-            android:layout_height="match_parent"
-            android:layout_width="wrap_content"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
-            />
-        <ImageView
             android:id="@+id/profileBtn"
-            app:layout_constraintStart_toEndOf="@id/notificationBtn"
+            app:layout_constraintStart_toEndOf="@id/graphBtn"
             app:layout_constraintEnd_toEndOf="parent"
             android:src="@mipmap/profile"
             android:layout_height="match_parent"
