@@ -127,7 +127,7 @@ class MainProfileFragment : Fragment() {
         linearLayoutInScroll.addView(content)
 
         val rightText = TextView(requireContext())
-        rightText.text = "1.0.0"
+        rightText.text = "v1.0.0"
         val silverColor = ContextCompat.getColor(requireContext(), R.color.white)
         rightText.setTextColor(silverColor)
 

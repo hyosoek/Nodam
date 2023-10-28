@@ -30,6 +30,7 @@ class MainHomeFragment : Fragment() {
         // 프래그먼트의 레이아웃을 인플레이트하고 반환합니다.
         val view = inflater.inflate(R.layout.fragment_main_home, container, false)
         RequestPermissionsUtil(requireContext()).requestLocation()
+        gpsRenewEvent(view)
         setRemainCount(view)
         gpsRenewBtnEvent(view)
         smokeBtnEvent(view)
@@ -73,57 +74,36 @@ class MainHomeFragment : Fragment() {
         }
     }
 
-    @SuppressLint("MissingPermission")
+
     fun gpsRenewBtnEvent(view:View){
         val gpsToAddressBtn = view.findViewById<Button>(R.id.addressBtn)
-        val addressText = view.findViewById<TextView>(R.id.addressText)
         gpsToAddressBtn.setOnClickListener{
-            val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-            fusedLocationProviderClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, null)
-                .addOnSuccessListener { success: Location? ->
-                    success?.let { location ->
-                        val address = getAddress(location.latitude, location.longitude)?.get(0)
-                        if (address != null) {
-                            addressText.text = address.getAddressLine(0)
-
-                        }
-//                        addressText.text = address?.let { "${it.adminArea} ${it.locality} ${it.thoroughfare}"
-//                        }
-                    }
-                }
-                .addOnFailureListener { fail ->
-                    Log.d("Failure : ","Calling address fail")
-                }
+            gpsRenewEvent(view)
         }
     }
 
-    fun smokeBtnEvent(view:View){
-        var smokeBtn = view.findViewById<LinearLayout>(R.id.smokeBtn)
-        smokeBtn.setOnClickListener{
-            val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
-            val smokeMaxCount = sharedPreferences.getInt("smokeMaxCount", -1)
-            if(smokeMaxCount == -1){
-                val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle("일일 흡연 횟수를 설정 해주세요")
-                    .setMessage("프로필 -> 일일흡연 횟수에서 설정 가능합니다.")
-                builder.show()
-            }else{
-                val date = DateParse()
-                var todaySmokeCount = sharedPreferences.getInt(date.getCurrentDate(),0) // 오늘 핀 횟수 가져오는데 없으면 0으로 간주
-                if(todaySmokeCount == smokeMaxCount){
-                    val builder = AlertDialog.Builder(requireContext())
-                    builder.setTitle("금일 흡연 가능 횟수를 모두 소진하였습니다.")
-                        .setMessage("내일을 기다려주세요")
-                    builder.show()
-                }else{
-                    val editor = sharedPreferences.edit()
-                    editor.putInt(date.getCurrentDate(), todaySmokeCount + 1)
-                    editor.apply()
-                    var information = view.findViewById<TextView>(R.id.countInformation)
-                    var todaySmokeCount = sharedPreferences.getInt(date.getCurrentDate(),0)
-                    information.text = (smokeMaxCount-todaySmokeCount).toString() + "/" + smokeMaxCount.toString()
+    @SuppressLint("MissingPermission")
+    fun gpsRenewEvent(view: View){
+        val addressText = view.findViewById<TextView>(R.id.addressText)
+        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedLocationProviderClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { success: Location? ->
+                success?.let { location ->
+                    val address = getAddress(location.latitude, location.longitude)?.get(0)
+                    if (address != null) {
+                        addressText.text = address.getAddressLine(0)
+
+                    }
+//                        addressText.text = address?.let { "${it.adminArea} ${it.locality} ${it.thoroughfare}"
+//                        }
                 }
             }
-        }
+            .addOnFailureListener { fail ->
+                Log.d("Failure : ","Calling address fail")
+            }
+    }
+
+    fun smokeBtnEvent(view:View){
+        //여기서 thread를 통해서 블루투스와의 통신
     }
 }

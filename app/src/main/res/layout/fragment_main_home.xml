@@ -103,7 +103,7 @@
         app:layout_constraintHeight_percent="0.2"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginHorizontal="30dp"
-        android:background="@drawable/rounded_button_white"
+        android:background="@drawable/rounded_button_silver"
         android:layout_marginBottom="20dp"
         android:orientation="horizontal">
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -112,19 +112,58 @@
             android:layout_marginHorizontal="10dp"
             android:layout_marginVertical="10dp"
             android:background="@drawable/rounded_button_gray">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:text="흡연하기"
-            android:textColor="@color/white"
-            android:textSize="30dp"
-            android:fontFamily="@font/elicedxmedium">
+            <LinearLayout
+                android:id="@+id/stateOfDeviceLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/stateOfGPSLayout">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="기기 활성 상태 : "
+                    android:textColor="@color/white"
+                    android:textSize="25dp"
+                    android:fontFamily="@font/elicedxmedium">
+                </TextView>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Off"
+                    android:textColor="@color/silver"
+                    android:textSize="25dp"
+                    android:fontFamily="@font/elicedxmedium">
+                </TextView>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/stateOfGPSLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/stateOfDeviceLayout">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="흡연가능구역 : "
+                    android:textColor="@color/white"
+                    android:textSize="25dp"
+                    android:fontFamily="@font/elicedxmedium">
+                </TextView>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yes"
+                    android:textColor="@color/white"
+                    android:textSize="25dp"
+                    android:fontFamily="@font/elicedxmedium">
+                </TextView>
+            </LinearLayout>
 
-        </TextView>
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
