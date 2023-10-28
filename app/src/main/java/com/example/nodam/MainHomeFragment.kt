@@ -1,18 +1,136 @@
 package com.example.nodam
+import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
+import android.location.Address
+import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import com.example.mobilegpsexam.RequestPermissionsUtil
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
+import java.io.IOException
+import java.util.Locale
 
 class MainHomeFragment : Fragment() {
 
-    // 프래그먼트가 화면에 표시될 때 호출되는 메소드
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // 프래그먼트의 레이아웃을 인플레이트하고 반환합니다.
-        return inflater.inflate(R.layout.fragment_main, container, false)
+        val view = inflater.inflate(R.layout.fragment_main_home, container, false)
+        RequestPermissionsUtil(requireContext()).requestLocation()
+        setRemainCount(view)
+        gpsRenewBtnEvent(view)
+        smokeBtnEvent(view)
+        return view
+    }
+    fun setRemainCount(view:View){
+        val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+        val savedValue = sharedPreferences.getInt("smokeMaxCount", -1)
+
+        var information = view.findViewById<TextView>(R.id.countInformation)
+
+
+
+        val date = DateParse()
+//        val editor = sharedPreferences.edit()
+//        editor.putInt(date.getCurrentDate(), 0)
+//        editor.apply() //오늘 횟수 리셋용 코드
+        Log.d("date : ",date.getCurrentDate())
+
+        if(savedValue == -1){
+            information.text = "0/0"
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle("일일 흡연 횟수를 설정 해주세요")
+                .setMessage("프로필 -> 일일흡연 횟수에서 설정 가능합니다.")
+            builder.show()
+        }else{
+            var maxCount = savedValue
+            val date = DateParse()
+            val savedValue = sharedPreferences.getInt(date.getCurrentDate(), 0)
+            var toDayCount = maxCount - savedValue
+            information.text = toDayCount.toString() + "/" + maxCount
+        }
+    }
+
+    fun getAddress(lat: Double, lng: Double): List<Address>? {
+        lateinit var address: List<Address>
+
+        return try {
+            val geocoder = Geocoder(requireContext(), Locale.KOREA)
+            address = geocoder.getFromLocation(lat, lng, 1) as List<Address>
+            address
+        } catch (e: IOException) {
+            Toast.makeText(requireContext(), "주소를 가져 올 수 없습니다", Toast.LENGTH_SHORT).show()
+            null
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun gpsRenewBtnEvent(view:View){
+        val gpsToAddressBtn = view.findViewById<Button>(R.id.addressBtn)
+        val addressText = view.findViewById<TextView>(R.id.addressText)
+        gpsToAddressBtn.setOnClickListener{
+            val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+            fusedLocationProviderClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, null)
+                .addOnSuccessListener { success: Location? ->
+                    success?.let { location ->
+                        val address = getAddress(location.latitude, location.longitude)?.get(0)
+                        if (address != null) {
+                            addressText.text = address.getAddressLine(0)
+
+                        }
+//                        addressText.text = address?.let { "${it.adminArea} ${it.locality} ${it.thoroughfare}"
+//                        }
+                    }
+                }
+                .addOnFailureListener { fail ->
+                    Log.d("Failure : ","Calling address fail")
+                }
+        }
+    }
+
+    fun smokeBtnEvent(view:View){
+        var smokeBtn = view.findViewById<LinearLayout>(R.id.smokeBtn)
+        smokeBtn.setOnClickListener{
+            val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+            val smokeMaxCount = sharedPreferences.getInt("smokeMaxCount", -1)
+            if(smokeMaxCount == -1){
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("일일 흡연 횟수를 설정 해주세요")
+                    .setMessage("프로필 -> 일일흡연 횟수에서 설정 가능합니다.")
+                builder.show()
+            }else{
+                val date = DateParse()
+                var todaySmokeCount = sharedPreferences.getInt(date.getCurrentDate(),0) // 오늘 핀 횟수 가져오는데 없으면 0으로 간주
+                if(todaySmokeCount == smokeMaxCount){
+                    val builder = AlertDialog.Builder(requireContext())
+                    builder.setTitle("금일 흡연 가능 횟수를 모두 소진하였습니다.")
+                        .setMessage("내일을 기다려주세요")
+                    builder.show()
+                }else{
+                    val editor = sharedPreferences.edit()
+                    editor.putInt(date.getCurrentDate(), todaySmokeCount + 1)
+                    editor.apply()
+
+                    var information = view.findViewById<TextView>(R.id.countInformation)
+                    var todaySmokeCount = sharedPreferences.getInt(date.getCurrentDate(),0)
+                    information.text = (smokeMaxCount-todaySmokeCount).toString() + "/" + smokeMaxCount.toString()
+                }
+
+
+            }
+        }
     }
 }
