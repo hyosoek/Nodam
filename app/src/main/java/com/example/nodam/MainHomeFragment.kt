@@ -38,11 +38,7 @@ class MainHomeFragment : Fragment() {
     fun setRemainCount(view:View){
         val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
         val savedValue = sharedPreferences.getInt("smokeMaxCount", -1)
-
         var information = view.findViewById<TextView>(R.id.countInformation)
-
-
-
         val date = DateParse()
 //        val editor = sharedPreferences.edit()
 //        editor.putInt(date.getCurrentDate(), 0)
@@ -123,13 +119,10 @@ class MainHomeFragment : Fragment() {
                     val editor = sharedPreferences.edit()
                     editor.putInt(date.getCurrentDate(), todaySmokeCount + 1)
                     editor.apply()
-
                     var information = view.findViewById<TextView>(R.id.countInformation)
                     var todaySmokeCount = sharedPreferences.getInt(date.getCurrentDate(),0)
                     information.text = (smokeMaxCount-todaySmokeCount).toString() + "/" + smokeMaxCount.toString()
                 }
-
-
             }
         }
     }

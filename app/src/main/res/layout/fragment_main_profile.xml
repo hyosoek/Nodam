@@ -38,6 +38,7 @@
             android:layout_margin="20dp">
         </ImageView>
         <TextView
+            android:id="@+id/userName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toEndOf="@id/profileImg"
