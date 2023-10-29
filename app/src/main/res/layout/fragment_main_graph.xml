@@ -17,11 +17,98 @@
 
         app:layout_constraintHeight_percent="0.1"
         app:layout_constraintTop_toTopOf="parent"/>
-    <View
-        android:id="@+id/line"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="@color/silver"
-        app:layout_constraintTop_toBottomOf="@+id/explainText" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/graphView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:cardElevation="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintDimensionRatio="1:0.7"
+        app:layout_constraintWidth_percent="0.95">
+        <HorizontalScrollView
+            android:id="@+id/horizontal_scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:paddingBottom="5dp"
+            android:scrollbars="horizontal">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/day_time_chart"
+                    android:layout_width="360dp"
+                    android:layout_height="320dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="30dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        app:layout_constraintWidth_percent="0.95"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/graphView"
+        android:paddingVertical="3dp"
+        android:background="@color/white"
+        android:orientation="horizontal">
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:layout_marginHorizontal="3dp"
+
+            android:background="@color/gray"
+            android:text="최근 1년"
+            android:textColor="@color/white"
+            android:textSize="15dp">
+        </Button>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:layout_marginHorizontal="3dp"
+
+            android:background="@color/gray"
+            android:text="최근 3개월"
+            android:textColor="@color/white"
+            android:textSize="15dp">
+        </Button>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:layout_marginHorizontal="3dp"
+
+            android:background="@color/gray"
+            android:text="최근 1개월"
+            android:textColor="@color/white"
+            android:textSize="15dp">
+        </Button>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:layout_marginHorizontal="3dp"
+
+            android:background="@color/white"
+            android:text="최근 1주일"
+            android:textColor="@color/gray"
+            android:textSize="15dp">
+        </Button>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

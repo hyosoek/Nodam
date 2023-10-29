@@ -16,3 +16,5 @@ class MainGraphFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_main_graph, container, false)
     }
 }
+
+data class CommitData(val date: String, val commitNum: Int)
