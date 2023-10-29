@@ -1,4 +1,5 @@
 package com.example.nodam
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -14,6 +15,8 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.DefaultValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 class MainGraphFragment : Fragment() {
 
@@ -41,20 +44,23 @@ class MainGraphFragment : Fragment() {
         val btn = view.findViewById<Button>(R.id.weeklyBtn)
         btn.setBackgroundResource(R.color.white)
         btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val calendar = Calendar.getInstance()
 
-        val dataList: List<CommitData> = listOf(
-            CommitData("08-28",3),
-            CommitData("08-29",2),
-            CommitData("08-30",5),
-            CommitData("08-31",2),
-            CommitData("09-01",3),
-            CommitData("09-02",6),
-            CommitData("09-03",7),
-            CommitData("09-04",1),
-            CommitData("09-05",3),
-            CommitData("09-06",2)
-        )
-        setGraphData(view, dataList)
+        //오늘 데이터 추가하기
+        val currentDate = calendar.time
+        dateFormat.format(currentDate)
+
+        val dataList = mutableListOf<CommitData>()
+        // 최근 6일 동안의 날짜
+        for (i in 1 until 8) {
+            val recentDate = calendar.time
+            val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+            val smokeTime = sharedPreferences.getInt(dateFormat.format(recentDate), 0) //오늘의 최대값을 가져오기
+            dataList.add(CommitData(dateFormat.format(recentDate).toString(),smokeTime))
+            calendar.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        setGraphData(view, dataList.reversed())
     }
     fun setMonthlyGraphData(view : View){
         defaultBtnColorSet(view)
@@ -120,22 +126,6 @@ class MainGraphFragment : Fragment() {
         setGraphData(view, dataList)
     }
 
-
-
-    fun defaultBtnColorSet(view:View){
-        val weeklyBtn = view.findViewById<Button>(R.id.weeklyBtn)
-        val monthlyBtn = view.findViewById<Button>(R.id.monthlyBtn)
-        val quarterBtn = view.findViewById<Button>(R.id.quaterBtn)
-        val annuallyBtn = view.findViewById<Button>(R.id.annuallyBtn)
-        weeklyBtn.setBackgroundResource(R.color.gray)
-        monthlyBtn.setBackgroundResource(R.color.gray)
-        quarterBtn.setBackgroundResource(R.color.gray)
-        annuallyBtn.setBackgroundResource(R.color.gray)
-        weeklyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        monthlyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        quarterBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        annuallyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-    }
     fun setGraphData(view : View, dataList: List<CommitData>){
 
         val linechart = view.findViewById<LineChart>(R.id.line_chart)
@@ -159,7 +149,7 @@ class MainGraphFragment : Fragment() {
             setDrawValues(true) // 숫자표시
             valueTextColor = resources.getColor(R.color.black, null)
             valueFormatter = DefaultValueFormatter(0)  // 소숫점 자릿수 설정
-            valueTextSize = 10f
+            valueTextSize = 20f
         }
 
         //차트 전체 설정
@@ -183,7 +173,7 @@ class MainGraphFragment : Fragment() {
             textColor = resources.getColor(R.color.black, null)
             textSize = 10f
             labelRotationAngle = 0f
-            setLabelCount(10, true)
+            setLabelCount(7, true)
         }
 
         val horizontalScrollView = view.findViewById<HorizontalScrollView>(R.id.horizontal_scroll_view)
@@ -220,6 +210,21 @@ class MainGraphFragment : Fragment() {
             return xAxisData[(value).toInt()]
         }
 
+    }
+
+    fun defaultBtnColorSet(view:View){
+        val weeklyBtn = view.findViewById<Button>(R.id.weeklyBtn)
+        val monthlyBtn = view.findViewById<Button>(R.id.monthlyBtn)
+        val quarterBtn = view.findViewById<Button>(R.id.quaterBtn)
+        val annuallyBtn = view.findViewById<Button>(R.id.annuallyBtn)
+        weeklyBtn.setBackgroundResource(R.color.gray)
+        monthlyBtn.setBackgroundResource(R.color.gray)
+        quarterBtn.setBackgroundResource(R.color.gray)
+        annuallyBtn.setBackgroundResource(R.color.gray)
+        weeklyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        monthlyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        quarterBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        annuallyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
     }
 
     fun setWeeklyGraphBtnEvent(view:View){

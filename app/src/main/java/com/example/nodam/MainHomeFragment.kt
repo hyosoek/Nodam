@@ -111,8 +111,6 @@ class MainHomeFragment : Fragment() {
     fun smokeEvent(view:View){
         //여기서 thread를 통해서 블루투스와의 통신
 
-
-
         //임시코드임
         view.findViewById<LinearLayout>(R.id.smokeBtn).setOnClickListener{
             val date = DateParse()
