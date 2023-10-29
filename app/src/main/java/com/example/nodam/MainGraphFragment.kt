@@ -4,7 +4,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.HorizontalScrollView
+import androidx.core.content.ContextCompat
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
@@ -25,12 +27,21 @@ class MainGraphFragment : Fragment() {
         // 프래그먼트의 레이아웃을 인플레이트하고 반환합니다.
         val view =  inflater.inflate(R.layout.fragment_main_graph, container, false)
 
-        setGraphData(view)
+        setWeeklyGraphData(view)
+        setWeeklyGraphBtnEvent(view)
+        setMonthlyGraphBtnEvent(view)
+        setQuaterGraphBtnEvent(view)
+        setAnnuallyGraphBtnEvent(view)
         return view
     }
 
+    fun setWeeklyGraphData(view : View){
+        defaultBtnColorSet(view)
 
-    fun setGraphData(view : View){
+        val btn = view.findViewById<Button>(R.id.weeklyBtn)
+        btn.setBackgroundResource(R.color.white)
+        btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+
         val dataList: List<CommitData> = listOf(
             CommitData("08-28",3),
             CommitData("08-29",2),
@@ -43,6 +54,89 @@ class MainGraphFragment : Fragment() {
             CommitData("09-05",3),
             CommitData("09-06",2)
         )
+        setGraphData(view, dataList)
+    }
+    fun setMonthlyGraphData(view : View){
+        defaultBtnColorSet(view)
+
+        val btn = view.findViewById<Button>(R.id.monthlyBtn)
+        btn.setBackgroundResource(R.color.white)
+        btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+
+        val dataList: List<CommitData> = listOf(
+            CommitData("08-28",3),
+            CommitData("08-29",2),
+            CommitData("08-30",5),
+            CommitData("08-31",2),
+            CommitData("09-01",3),
+            CommitData("09-02",6),
+            CommitData("09-03",7),
+            CommitData("09-04",1),
+            CommitData("09-05",3),
+            CommitData("09-06",2)
+        )
+        setGraphData(view, dataList)
+    }
+    fun setQuarterGraphData(view : View){
+        defaultBtnColorSet(view)
+
+        val btn = view.findViewById<Button>(R.id.quaterBtn)
+        btn.setBackgroundResource(R.color.white)
+        btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+
+        val dataList: List<CommitData> = listOf(
+            CommitData("08-28",3),
+            CommitData("08-29",2),
+            CommitData("08-30",5),
+            CommitData("08-31",2),
+            CommitData("09-01",3),
+            CommitData("09-02",6),
+            CommitData("09-03",7),
+            CommitData("09-04",1),
+            CommitData("09-05",3),
+            CommitData("09-06",2)
+        )
+        setGraphData(view, dataList)
+    }
+    fun setAnnuallyGraphData(view : View){
+        defaultBtnColorSet(view)
+
+        val btn = view.findViewById<Button>(R.id.annuallyBtn)
+        btn.setBackgroundResource(R.color.white)
+        btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+
+        val dataList: List<CommitData> = listOf(
+            CommitData("08-28",3),
+            CommitData("08-29",2),
+            CommitData("08-30",5),
+            CommitData("08-31",2),
+            CommitData("09-01",3),
+            CommitData("09-02",6),
+            CommitData("09-03",7),
+            CommitData("09-04",1),
+            CommitData("09-05",3),
+            CommitData("09-06",2)
+        )
+        setGraphData(view, dataList)
+    }
+
+
+
+    fun defaultBtnColorSet(view:View){
+        val weeklyBtn = view.findViewById<Button>(R.id.weeklyBtn)
+        val monthlyBtn = view.findViewById<Button>(R.id.monthlyBtn)
+        val quarterBtn = view.findViewById<Button>(R.id.quaterBtn)
+        val annuallyBtn = view.findViewById<Button>(R.id.annuallyBtn)
+        weeklyBtn.setBackgroundResource(R.color.gray)
+        monthlyBtn.setBackgroundResource(R.color.gray)
+        quarterBtn.setBackgroundResource(R.color.gray)
+        annuallyBtn.setBackgroundResource(R.color.gray)
+        weeklyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        monthlyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        quarterBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        annuallyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+    }
+    fun setGraphData(view : View, dataList: List<CommitData>){
 
         val linechart = view.findViewById<LineChart>(R.id.line_chart)
         val xAxis = linechart.xAxis
@@ -121,12 +215,39 @@ class MainGraphFragment : Fragment() {
         }
         return dataTextList
     }
-
     class XAxisCustomFormatter(val xAxisData: List<String>) : ValueFormatter() {
         override fun getFormattedValue(value: Float): String {
             return xAxisData[(value).toInt()]
         }
 
+    }
+
+    fun setWeeklyGraphBtnEvent(view:View){
+        val btn = view.findViewById<Button>(R.id.weeklyBtn)
+        btn.setOnClickListener{
+            setWeeklyGraphData(view)
+        }
+    }
+
+    fun setMonthlyGraphBtnEvent(view:View){
+        val btn = view.findViewById<Button>(R.id.monthlyBtn)
+        btn.setOnClickListener {
+            setMonthlyGraphData(view)
+        }
+    }
+
+    fun setQuaterGraphBtnEvent(view:View){
+        val btn = view.findViewById<Button>(R.id.quaterBtn)
+        btn.setOnClickListener {
+            setQuarterGraphData(view)
+        }
+    }
+
+    fun setAnnuallyGraphBtnEvent(view:View){
+        val btn = view.findViewById<Button>(R.id.annuallyBtn)
+        btn.setOnClickListener {
+            setAnnuallyGraphData(view)
+        }
     }
 }
 

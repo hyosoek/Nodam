@@ -59,6 +59,7 @@
         android:background="@color/white"
         android:orientation="horizontal">
         <Button
+            android:id="@+id/annuallyBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -71,6 +72,7 @@
             android:textSize="15dp">
         </Button>
         <Button
+            android:id="@+id/quaterBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -83,6 +85,7 @@
             android:textSize="15dp">
         </Button>
         <Button
+            android:id="@+id/monthlyBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -95,15 +98,16 @@
             android:textSize="15dp">
         </Button>
         <Button
+            android:id="@+id/weeklyBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
 
             android:layout_marginHorizontal="3dp"
 
-            android:background="@color/white"
+            android:background="@color/gray"
             android:text="최근 1주일"
-            android:textColor="@color/gray"
+            android:textColor="@color/white"
             android:textSize="15dp">
         </Button>
     </LinearLayout>
