@@ -52,7 +52,7 @@ class MainGraphFragment : Fragment() {
         dateFormat.format(currentDate)
 
         val dataList = mutableListOf<CommitData>()
-        // 최근 6일 동안의 날짜
+        // 최근 7일 동안의 날짜
         for (i in 1 until 8) {
             val recentDate = calendar.time
             val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
@@ -68,20 +68,36 @@ class MainGraphFragment : Fragment() {
         val btn = view.findViewById<Button>(R.id.monthlyBtn)
         btn.setBackgroundResource(R.color.white)
         btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val calendar = Calendar.getInstance()
 
-        val dataList: List<CommitData> = listOf(
-            CommitData("08-28",3),
-            CommitData("08-29",2),
-            CommitData("08-30",5),
-            CommitData("08-31",2),
-            CommitData("09-01",3),
-            CommitData("09-02",6),
-            CommitData("09-03",7),
-            CommitData("09-04",1),
-            CommitData("09-05",3),
-            CommitData("09-06",2)
-        )
-        setGraphData(view, dataList)
+        //오늘 데이터 추가하기
+        val currentDate = calendar.time
+        dateFormat.format(currentDate)
+
+        val dataList = mutableListOf<CommitData>()
+        // 최근 7일 동안의 날짜
+        for(j in 1 until 6){ //최근 5주간의 데이터를 파싱
+            var stack = 0
+            var start = ""
+            var end = ""
+            for (i in 1 until 8) {
+                val recentDate = calendar.time
+                val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+                val smokeTime = sharedPreferences.getInt(dateFormat.format(recentDate), 0) //오늘의 최대값을 가져오기
+                stack += smokeTime
+                if(i == 1){
+                    start = recentDate.toString()
+                }else if(i == 7){
+                    end = recentDate.toString()
+                }
+                calendar.add(Calendar.DAY_OF_YEAR, -1)
+            }
+            val recentDate = calendar.time
+            dataList.add(CommitData(dateFormat.format(recentDate).toString(),stack))
+        }
+
+        setGraphData(view, dataList.reversed())
     }
     fun setQuarterGraphData(view : View){
         defaultBtnColorSet(view)
