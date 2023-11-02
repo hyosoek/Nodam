@@ -1,6 +1,7 @@
 package com.example.nodam
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,9 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.DefaultValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -31,10 +35,7 @@ class MainGraphFragment : Fragment() {
         val view =  inflater.inflate(R.layout.fragment_main_graph, container, false)
 
         setWeeklyGraphData(view)
-        setWeeklyGraphBtnEvent(view)
-        setMonthlyGraphBtnEvent(view)
-        setQuaterGraphBtnEvent(view)
-        setAnnuallyGraphBtnEvent(view)
+        setGraphBtnEvent(view)
         return view
     }
 
@@ -57,7 +58,10 @@ class MainGraphFragment : Fragment() {
             val recentDate = calendar.time
             val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
             val smokeTime = sharedPreferences.getInt(dateFormat.format(recentDate), 0) //오늘의 최대값을 가져오기
-            dataList.add(CommitData(dateFormat.format(recentDate).toString(),smokeTime))
+            val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+            val dayNames = arrayOf("일", "월", "화", "수", "목", "금", "토")
+            val koreanDayOfWeek = dayNames[dayOfWeek - 1]
+            dataList.add(CommitData(koreanDayOfWeek,smokeTime))
             calendar.add(Calendar.DAY_OF_YEAR, -1)
         }
         setGraphData(view, dataList.reversed())
@@ -80,21 +84,17 @@ class MainGraphFragment : Fragment() {
         for(j in 1 until 6){ //최근 5주간의 데이터를 파싱
             var stack = 0
             var start = ""
-            var end = ""
             for (i in 1 until 8) {
                 val recentDate = calendar.time
                 val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
                 val smokeTime = sharedPreferences.getInt(dateFormat.format(recentDate), 0) //오늘의 최대값을 가져오기
                 stack += smokeTime
                 if(i == 1){
-                    start = recentDate.toString()
-                }else if(i == 7){
-                    end = recentDate.toString()
+                    start = dateFormat.format(recentDate).substring(5, 10)
                 }
                 calendar.add(Calendar.DAY_OF_YEAR, -1)
             }
-            val recentDate = calendar.time
-            dataList.add(CommitData(dateFormat.format(recentDate).toString(),stack))
+            dataList.add(CommitData("~"+start,stack))
         }
 
         setGraphData(view, dataList.reversed())
@@ -105,45 +105,68 @@ class MainGraphFragment : Fragment() {
         val btn = view.findViewById<Button>(R.id.quaterBtn)
         btn.setBackgroundResource(R.color.white)
         btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val calendar = Calendar.getInstance()
 
-        val dataList: List<CommitData> = listOf(
-            CommitData("08-28",3),
-            CommitData("08-29",2),
-            CommitData("08-30",5),
-            CommitData("08-31",2),
-            CommitData("09-01",3),
-            CommitData("09-02",6),
-            CommitData("09-03",7),
-            CommitData("09-04",1),
-            CommitData("09-05",3),
-            CommitData("09-06",2)
-        )
-        setGraphData(view, dataList)
+        //오늘 데이터 추가하기
+        val currentDate = calendar.time
+        dateFormat.format(currentDate)
+
+        val dataList = mutableListOf<CommitData>()
+        // 최근 7일 동안의 날짜
+        for(j in 1 until 4) {
+            for (j in 1 until 6) { //최근 5주간의 데이터를 파싱
+                var stack = 0
+                for (i in 1 until 8) {
+                    val recentDate = calendar.time
+                    val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+                    val smokeTime = sharedPreferences.getInt(dateFormat.format(recentDate), 0) //오늘의 최대값을 가져오기
+                    stack += smokeTime
+                    calendar.add(Calendar.DAY_OF_YEAR, -1)
+                }
+                val recentDate = calendar.time //이렇게 하면 가장 먼 날이 되는데....
+                dataList.add(CommitData(dateFormat.format(recentDate).toString().substring(8,10), stack))
+
+            }
+        }
+
+        setGraphData(view, dataList.reversed())
     }
-    fun setAnnuallyGraphData(view : View){
+    fun setAnnuallyGraphData(view : View){ //  달 별로 parsing하는게 좋을 듯
         defaultBtnColorSet(view)
 
         val btn = view.findViewById<Button>(R.id.annuallyBtn)
         btn.setBackgroundResource(R.color.white)
         btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val calendar = Calendar.getInstance()
 
-        val dataList: List<CommitData> = listOf(
-            CommitData("08-28",3),
-            CommitData("08-29",2),
-            CommitData("08-30",5),
-            CommitData("08-31",2),
-            CommitData("09-01",3),
-            CommitData("09-02",6),
-            CommitData("09-03",7),
-            CommitData("09-04",1),
-            CommitData("09-05",3),
-            CommitData("09-06",2)
-        )
-        setGraphData(view, dataList)
+        //오늘 데이터 추가하기
+        val currentDate = calendar.time
+        dateFormat.format(currentDate)
+
+        val dataList = mutableListOf<CommitData>()
+        // 최근 7일 동안의 날짜
+        val recentDate = calendar.time
+        var month = dateFormat.format(recentDate).substring(5,7) //현재 달을 출력
+        var stack = 0
+        for(i in 0 until 365 ){ //최근 5주간의 데이터를 파싱
+            val recentDate = calendar.time
+            if(dateFormat.format(recentDate).substring(5,7) != month){
+                Log.d("Test_code","${recentDate}")
+                dataList.add(CommitData(month.toString(),stack))
+                stack = 0
+                month = dateFormat.format(recentDate).substring(5,7)
+            }
+            val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+            val smokeTime = sharedPreferences.getInt(dateFormat.format(recentDate), 0) //오늘의 최대값을 가져오기
+            stack += smokeTime
+            calendar.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        setGraphData(view, dataList.reversed())
     }
 
     fun setGraphData(view : View, dataList: List<CommitData>){
-
         val linechart = view.findViewById<LineChart>(R.id.line_chart)
         val xAxis = linechart.xAxis
 
@@ -153,7 +176,7 @@ class MainGraphFragment : Fragment() {
         for (i in dataList.indices){
             entries.add(Entry(i.toFloat(), dataList[i].commitNum.toFloat()))
         }
-        val lineDataSet =LineDataSet(entries,"entries")
+        val lineDataSet = LineDataSet(entries,"entries")
 
         lineDataSet.apply {
             color = resources.getColor(R.color.black, null)
@@ -176,10 +199,11 @@ class MainGraphFragment : Fragment() {
             description.isEnabled = false //주석
             isDragXEnabled = true   // x 축 드래그 여부
             isScaleYEnabled = false //y축 줌 사용여부
-            isScaleXEnabled = false //x축 줌 사용여부
+            isScaleXEnabled = false//x축 줌 사용여부
         }
-
         //X축 설정
+
+
         xAxis.apply {
             setDrawGridLines(false)
             setDrawAxisLine(true)
@@ -189,11 +213,21 @@ class MainGraphFragment : Fragment() {
             textColor = resources.getColor(R.color.black, null)
             textSize = 10f
             labelRotationAngle = 0f
-            setLabelCount(7, true)
+
+            var listSize = 0
+            GlobalScope.launch(Dispatchers.Main) {
+                listSize = dataList.size
+                setLabelCount(listSize, true)
+                linechart.apply {
+                    invalidate() // view갱신
+                }
+            }
+            //setLabelCount(listSize, true)
         }
 
-        val horizontalScrollView = view.findViewById<HorizontalScrollView>(R.id.horizontal_scroll_view)
-        horizontalScrollView.post{
+        val horizontalScrollView =
+            view.findViewById<HorizontalScrollView>(R.id.horizontal_scroll_view)
+        horizontalScrollView.post {
             horizontalScrollView.scrollTo(
                 linechart.width,
                 0
@@ -205,19 +239,12 @@ class MainGraphFragment : Fragment() {
             notifyDataSetChanged() //데이터 갱신
             invalidate() // view갱신
         }
-
-
     }
     fun changeDateText(dataList: List<CommitData>): List<String> {
         val dataTextList = ArrayList<String>()
         for (i in dataList.indices) {
-            val textSize = dataList[i].date.length
-            val dateText = dataList[i].date.substring(textSize - 2, textSize)
-            if (dateText == "01") {
-                dataTextList.add(dataList[i].date)
-            } else {
-                dataTextList.add(dateText)
-            }
+            val dateText = dataList[i].date
+            dataTextList.add(dateText)
         }
         return dataTextList
     }
@@ -242,34 +269,26 @@ class MainGraphFragment : Fragment() {
         quarterBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         annuallyBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
     }
+    fun setGraphBtnEvent(view:View){
+        val weeklyBtn = view.findViewById<Button>(R.id.weeklyBtn)
+        val monthlyBtn = view.findViewById<Button>(R.id.monthlyBtn)
+        val quarterBtn = view.findViewById<Button>(R.id.quaterBtn)
+        val annuallyBtn = view.findViewById<Button>(R.id.annuallyBtn)
 
-    fun setWeeklyGraphBtnEvent(view:View){
-        val btn = view.findViewById<Button>(R.id.weeklyBtn)
-        btn.setOnClickListener{
+        weeklyBtn.setOnClickListener{
             setWeeklyGraphData(view)
         }
-    }
-
-    fun setMonthlyGraphBtnEvent(view:View){
-        val btn = view.findViewById<Button>(R.id.monthlyBtn)
-        btn.setOnClickListener {
+        monthlyBtn.setOnClickListener{
             setMonthlyGraphData(view)
         }
-    }
-
-    fun setQuaterGraphBtnEvent(view:View){
-        val btn = view.findViewById<Button>(R.id.quaterBtn)
-        btn.setOnClickListener {
+        quarterBtn.setOnClickListener {
             setQuarterGraphData(view)
         }
-    }
-
-    fun setAnnuallyGraphBtnEvent(view:View){
-        val btn = view.findViewById<Button>(R.id.annuallyBtn)
-        btn.setOnClickListener {
+        annuallyBtn.setOnClickListener {
             setAnnuallyGraphData(view)
         }
     }
+
 }
 
 
