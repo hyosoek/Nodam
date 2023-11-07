@@ -167,78 +167,84 @@ class MainGraphFragment : Fragment() {
     }
 
     fun setGraphData(view : View, dataList: List<CommitData>){
-        val linechart = view.findViewById<LineChart>(R.id.line_chart)
-        val xAxis = linechart.xAxis
+        try{
+            val linechart = view.findViewById<LineChart>(R.id.line_chart)
+            val xAxis = linechart.xAxis
 
-        //데이터 가공
-        //y축
-        val entries: MutableList<Entry> = mutableListOf()
-        for (i in dataList.indices){
-            entries.add(Entry(i.toFloat(), dataList[i].commitNum.toFloat()))
-        }
-        val lineDataSet = LineDataSet(entries,"entries")
-
-        lineDataSet.apply {
-            color = resources.getColor(R.color.black, null)
-            circleRadius = 5f
-            lineWidth = 3f
-            setCircleColor(resources.getColor(R.color.black, null))
-            circleHoleColor = resources.getColor(R.color.black, null)
-            setDrawHighlightIndicators(false)
-            setDrawValues(true) // 숫자표시
-            valueTextColor = resources.getColor(R.color.black, null)
-            valueFormatter = DefaultValueFormatter(0)  // 소숫점 자릿수 설정
-            valueTextSize = 20f
-        }
-
-        //차트 전체 설정
-        linechart.apply {
-            axisRight.isEnabled = false   //y축 사용여부
-            axisLeft.isEnabled = false
-            legend.isEnabled = false    //legend 사용여부
-            description.isEnabled = false //주석
-            isDragXEnabled = true   // x 축 드래그 여부
-            isScaleYEnabled = false //y축 줌 사용여부
-            isScaleXEnabled = false//x축 줌 사용여부
-        }
-        //X축 설정
-
-
-        xAxis.apply {
-            setDrawGridLines(false)
-            setDrawAxisLine(true)
-            setDrawLabels(true)
-            position = XAxis.XAxisPosition.BOTTOM
-            valueFormatter = XAxisCustomFormatter(changeDateText(dataList))
-            textColor = resources.getColor(R.color.black, null)
-            textSize = 10f
-            labelRotationAngle = 0f
-
-            var listSize = 0
-            GlobalScope.launch(Dispatchers.Main) {
-                listSize = dataList.size
-                setLabelCount(listSize, true)
-                linechart.apply {
-                    invalidate() // view갱신
-                }
+            //데이터 가공
+            //y축
+            val entries: MutableList<Entry> = mutableListOf()
+            for (i in dataList.indices){
+                entries.add(Entry(i.toFloat(), dataList[i].commitNum.toFloat()))
             }
-            //setLabelCount(listSize, true)
+            val lineDataSet = LineDataSet(entries,"entries")
+
+            lineDataSet.apply {
+                color = resources.getColor(R.color.black, null)
+                circleRadius = 5f
+                lineWidth = 3f
+                setCircleColor(resources.getColor(R.color.black, null))
+                circleHoleColor = resources.getColor(R.color.black, null)
+                setDrawHighlightIndicators(false)
+                setDrawValues(true) // 숫자표시
+                valueTextColor = resources.getColor(R.color.black, null)
+                valueFormatter = DefaultValueFormatter(0)  // 소숫점 자릿수 설정
+                valueTextSize = 20f
+            }
+
+            //차트 전체 설정
+            linechart.apply {
+                axisRight.isEnabled = false   //y축 사용여부
+                axisLeft.isEnabled = false
+                legend.isEnabled = false    //legend 사용여부
+                description.isEnabled = false //주석
+                isDragXEnabled = true   // x 축 드래그 여부
+                isScaleYEnabled = false //y축 줌 사용여부
+                isScaleXEnabled = false//x축 줌 사용여부
+            }
+            //X축 설정
+
+
+            xAxis.apply {
+                setDrawGridLines(false)
+                setDrawAxisLine(true)
+                setDrawLabels(true)
+                position = XAxis.XAxisPosition.BOTTOM
+                valueFormatter = XAxisCustomFormatter(changeDateText(dataList))
+                textColor = resources.getColor(R.color.black, null)
+                textSize = 10f
+                labelRotationAngle = 0f
+
+                var listSize = 0
+                GlobalScope.launch(Dispatchers.Main) {
+                    listSize = dataList.size
+                    setLabelCount(listSize, true)
+                    linechart.apply {
+                        invalidate() // view갱신
+                    }
+                }
+                //setLabelCount(listSize, true)
+            }
+
+            val horizontalScrollView =
+                view.findViewById<HorizontalScrollView>(R.id.horizontal_scroll_view)
+            horizontalScrollView.post {
+                horizontalScrollView.scrollTo(
+                    linechart.width,
+                    0
+                )
+            }
+
+            linechart.apply {
+                data = LineData(lineDataSet)
+                notifyDataSetChanged() //데이터 갱신
+                invalidate() // view갱신
+            }
+        }catch (err : IndexOutOfBoundsException){
+            Log.d("error_on_graph_logic","IndexOutOfBoundsException")
+            setGraphData(view,dataList)
         }
 
-        val horizontalScrollView =
-            view.findViewById<HorizontalScrollView>(R.id.horizontal_scroll_view)
-        horizontalScrollView.post {
-            horizontalScrollView.scrollTo(
-                linechart.width,
-                0
-            )
-        }
-
-        linechart.apply {
-            data = LineData(lineDataSet)
-            notifyDataSetChanged() //데이터 갱신
-            invalidate() // view갱신
-        }
     }
     fun changeDateText(dataList: List<CommitData>): List<String> {
         val dataTextList = ArrayList<String>()
