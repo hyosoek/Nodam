@@ -17,7 +17,10 @@ class MainActivity : AppCompatActivity() {
             .commit()
 
         swapFragmentEvent()
+
     }
+
+
     fun swapFragmentEvent(){
         val homeBtn = findViewById<ImageView>(R.id.homeBtn)
         val graphBtn = findViewById<ImageView>(R.id.graphBtn)
