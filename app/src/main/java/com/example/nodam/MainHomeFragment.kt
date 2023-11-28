@@ -229,7 +229,7 @@ class MainHomeFragment : Fragment() {
         }
     }
 
-    private fun sendData(data: Boolean) {
+    private fun sendData(data: Boolean) {4
 // 기본 Toast 메시지 출력
         Toast.makeText(context, "${bluetoothAdapter},${bluetoothAdapter!!.isEnabled},${bluetoothSocket},${outputStream}", Toast.LENGTH_SHORT).show();
         if (bluetoothSocket != null && outputStream != null) {
