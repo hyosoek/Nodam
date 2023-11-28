@@ -30,6 +30,7 @@ import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.io.OutputStream
 import java.util.Locale
@@ -44,15 +45,18 @@ class MainHomeFragment : Fragment() {
     private val REQUEST_ENABLE_BT = 1
     private val PERMISSION_REQUEST_BLUETOOTH = 2
 
+    private var isConnected: Boolean = false
+    private lateinit var view: View
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_main_home, container, false)
-        Log.d("??","test FOR adapter")
+        view = inflater.inflate(R.layout.fragment_main_home, container, false)
+        //Log.d("??","test FOR adapter")
         val bluetoothManager = requireContext().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager?
         bluetoothAdapter = bluetoothManager?.adapter
-        Log.d("adapter","${bluetoothAdapter}")
+        //Log.d("adapter","${bluetoothAdapter}")
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.BLUETOOTH
@@ -68,10 +72,10 @@ class MainHomeFragment : Fragment() {
             initializeBluetooth()
         }
         RequestPermissionsUtil(requireContext()).requestLocation()
-        gpsRenewEvent(view)
-        setRemainCount(view)
-        gpsRenewBtnEvent(view)
-        smokeEvent(view)
+        gpsRenewEvent()
+        setRemainCount()
+        gpsRenewBtnEvent()
+        smokeEvent()
 
         //GlobalScope.launch(Dispatchers.Default) {
 
@@ -79,7 +83,7 @@ class MainHomeFragment : Fragment() {
         return view
     }
 
-    fun setRemainCount(view:View){
+    fun setRemainCount(){
         val date = DateParse()
 
         val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
@@ -125,14 +129,28 @@ class MainHomeFragment : Fragment() {
             null
         }
     }
-    fun gpsRenewBtnEvent(view:View){
-        val gpsToAddressBtn = view.findViewById<Button>(R.id.addressBtn)
-        gpsToAddressBtn.setOnClickListener{
-            gpsRenewEvent(view)
+
+    fun gpsCertification(lat: Double,lng: Double){
+        // 흡연구역 지정이 필요해 보임
+        val state = view.findViewById<TextView>(R.id.rangeState)
+        if(true){
+            state.text = "YES"
+            state.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        }else{
+            state.text = "NO"
+            state.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
         }
     }
+
+    fun gpsRenewBtnEvent(){
+        val gpsToAddressBtn = view.findViewById<Button>(R.id.addressBtn)
+        gpsToAddressBtn.setOnClickListener{
+            gpsRenewEvent()
+        }
+    }
+
     @SuppressLint("MissingPermission")
-    fun gpsRenewEvent(view: View){
+    fun gpsRenewEvent(){
         val addressText = view.findViewById<TextView>(R.id.addressText)
         val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         fusedLocationProviderClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, null)
@@ -141,8 +159,8 @@ class MainHomeFragment : Fragment() {
                     val address = getAddress(location.latitude, location.longitude)?.get(0)
                     if (address != null) {
                         addressText.text = address.getAddressLine(0)
-
                     }
+                    gpsCertification(location.latitude,location.longitude)
 //                        addressText.text = address?.let { "${it.adminArea} ${it.locality} ${it.thoroughfare}"
 //                        }
                 }
@@ -151,34 +169,48 @@ class MainHomeFragment : Fragment() {
                 Log.d("Failure : ","Calling address fail")
             }
     }
-    fun smokeEvent(view:View){
+    fun smokeEvent(){
         //여기서 thread를 통해서 블루투스와의 통신
-
+        initializeBluetooth() //연결 갱신으로 isConnected 활성화
         //임시코드임
         view.findViewById<LinearLayout>(R.id.smokeBtn).setOnClickListener{
-            sendData(true) // 이 부분 나중에 try 안으로 넣어야 함
+                val date = DateParse()
+                val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+                val todayMax = sharedPreferences.getInt("smokeMaxCount"+date.getCurrentDate(), -1) //오늘의 최대값을 가져오기
+                val todayCurrent = sharedPreferences.getInt(date.getCurrentDate(), -1)
 
+                if(todayMax-todayCurrent == 0){
+                    val builder = AlertDialog.Builder(requireContext())
+                    builder.setTitle("금일 가능한 횟수를 소진했습니다.")
+                        .setMessage("프로필 -> 일일흡연 횟수에서 설정 가능합니다. (명일부터 적용됩니다)")
+                    builder.show()
+                }else{
+                    runBlocking { initializeBluetooth() }  //비동기처리
+                    if(isConnected){
+                        runBlocking{ gpsRenewEvent() } //비동기처리
+                        if(view.findViewById<TextView>(R.id.deviceState).text== "ON" && view.findViewById<TextView>(R.id.rangeState).text == "YES"){
+                            val editor = sharedPreferences.edit()
+                            editor.putInt(date.getCurrentDate(), todayCurrent+1)
+                            editor.apply()
 
-            val date = DateParse()
-            val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
-            val todayMax = sharedPreferences.getInt("smokeMaxCount"+date.getCurrentDate(), -1) //오늘의 최대값을 가져오기
-            val todayCurrent = sharedPreferences.getInt(date.getCurrentDate(), -1)
-            if(todayMax-todayCurrent == 0){
-                val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle("금일 가능한 횟수를 소진했습니다.")
-                    .setMessage("프로필 -> 일일흡연 횟수에서 설정 가능합니다. (명일부터 적용됩니다)")
-                builder.show()
-            }else{
-                val editor = sharedPreferences.edit()
-                editor.putInt(date.getCurrentDate(), todayCurrent+1)
-                editor.apply()
-
-                val todayNewCurrent = sharedPreferences.getInt(date.getCurrentDate(), -1)
-                view.findViewById<TextView>(R.id.countInformation).text = (todayMax-todayNewCurrent).toString()+"/"+todayMax.toString()
-            }
+                            val todayNewCurrent = sharedPreferences.getInt(date.getCurrentDate(), -1)
+                            view.findViewById<TextView>(R.id.countInformation).text = (todayMax-todayNewCurrent).toString()+"/"+todayMax.toString()
+                            sendData(true)
+                        }else{
+                            val builder = AlertDialog.Builder(requireContext())
+                            builder.setTitle("흡연불가!")
+                                .setMessage("흡연이 불가능한 위치이거나, 기기가 연결되어 있지 않습니다.")
+                            builder.show()
+                        }
+                    }else{
+                        val builder = AlertDialog.Builder(requireContext())
+                        builder.setTitle("연결된 기기없음")
+                            .setMessage("휴대폰에 전자담배를 연결해주세요.")
+                        builder.show()
+                    }
+                }
         }
     }
-
 
     private fun setupBluetoothConnection() {
         // Bluetooth 권한이 있는지 확인
@@ -193,6 +225,13 @@ class MainHomeFragment : Fragment() {
 
     private fun initializeBluetooth() {
         // Bluetooth 권한 확인
+
+        //initialState
+        val state = view.findViewById<TextView>(R.id.deviceState)
+        state.text = "OFF"
+        state.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
+        isConnected
+
         if (checkPermission(Manifest.permission.BLUETOOTH) && checkPermission(Manifest.permission.BLUETOOTH_ADMIN)) {
             // Bluetooth 활성화 확인
             if (bluetoothAdapter != null && bluetoothAdapter!!.isEnabled) {
@@ -200,8 +239,13 @@ class MainHomeFragment : Fragment() {
                 val pairedDevices = bluetoothAdapter!!.bondedDevices
                 if (pairedDevices.size > 0) {
                     for (device in pairedDevices) {
-                        if (device.name == "CIG") {
-                            // 원하는 Bluetooth 디바이스를 찾았으면 BluetoothSocket 설정
+                        if (device.name == "CIG") { //
+
+                            // 연결에 성공함
+                            isConnected = true
+                            state.text = "ON"
+                            state.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+
                             val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
                             try {
                                 bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid)
@@ -212,6 +256,7 @@ class MainHomeFragment : Fragment() {
                             }
                             break
                         }
+
                     }
                 } else {
                     // 페어링된 장치가 없는 경우 처리
@@ -220,8 +265,8 @@ class MainHomeFragment : Fragment() {
                 }
             } else {
                 // Bluetooth가 비활성화된 경우 처리
-                Log.d("BluetoothExample", "Bluetooth is disabled")
-                Toast.makeText(requireContext(), "Bluetooth is disabled", Toast.LENGTH_SHORT).show()
+                Log.d("BluetoothExample", "Bluetooth is disabled!")
+                Toast.makeText(requireContext(), "Bluetooth is disabled!", Toast.LENGTH_SHORT).show()
             }
         } else {
             // Bluetooth 권한이 없는 경우 처리
@@ -229,7 +274,7 @@ class MainHomeFragment : Fragment() {
         }
     }
 
-    private fun sendData(data: Boolean) {4
+    private fun sendData(data: Boolean) {
 // 기본 Toast 메시지 출력
         Toast.makeText(context, "${bluetoothAdapter},${bluetoothAdapter!!.isEnabled},${bluetoothSocket},${outputStream}", Toast.LENGTH_SHORT).show();
         if (bluetoothSocket != null && outputStream != null) {
