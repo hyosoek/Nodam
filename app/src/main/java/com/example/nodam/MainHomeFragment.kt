@@ -132,8 +132,20 @@ class MainHomeFragment : Fragment() {
 
     fun gpsCertification(lat: Double,lng: Double){
         // 흡연구역 지정이 필요해 보임
+        var canSmoke = false;
+        Log.d("text","${lat},${lng}")
+        if(lat >= 37.4500700 && lat <= 37.4500800 && lng >= 126.6571 && lng <= 126.6572){
+            canSmoke = true;
+        }else if(lat >= 37.45062 && lat <= 37.45064 && lng >= 126.6566 && lng <= 126.6567){
+            canSmoke = true;
+        }else if(lat == 37.4219983 && lng == -122.084){
+            Log.d("good","${lat},${lng}")
+            canSmoke = true;
+        }else{
+            canSmoke = false;
+        }
         val state = view.findViewById<TextView>(R.id.rangeState)
-        if(true){
+        if(canSmoke){
             state.text = "YES"
             state.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         }else{
@@ -159,6 +171,7 @@ class MainHomeFragment : Fragment() {
                     val address = getAddress(location.latitude, location.longitude)?.get(0)
                     if (address != null) {
                         addressText.text = address.getAddressLine(0)
+                        //addressText.text = (location.latitude.toString() + ","+ location.longitude.toString())
                     }
                     gpsCertification(location.latitude,location.longitude)
 //                        addressText.text = address?.let { "${it.adminArea} ${it.locality} ${it.thoroughfare}"
