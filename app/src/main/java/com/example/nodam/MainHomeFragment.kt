@@ -139,11 +139,13 @@ class MainHomeFragment : Fragment() {
         }else if(lat >= 37.45062 && lat <= 37.45064 && lng >= 126.6566 && lng <= 126.6567){
             canSmoke = true;
         }else if(lat == 37.4219983 && lng == -122.084){
-            Log.d("good","${lat},${lng}")
             canSmoke = true;
-        }else{
-            canSmoke = false;
+        }else if(lat >= 37.450280 && lat <= 37.450827 && lng >= 126.656671 && lng <= 126.657510){
+            canSmoke = true;
+        }else if(lat >= 37.449987 && lat <= 37.450278 && lng >= 126.657093 && lng <= 126.657439){
+            canSmoke = true;
         }
+        // canSmoke = true;
         val state = view.findViewById<TextView>(R.id.rangeState)
         if(canSmoke){
             state.text = "YES"
@@ -172,6 +174,8 @@ class MainHomeFragment : Fragment() {
                     if (address != null) {
                         addressText.text = address.getAddressLine(0)
                         //addressText.text = (location.latitude.toString() + ","+ location.longitude.toString())
+                        Toast.makeText(requireContext(), (location.latitude.toString() + ","+ location.longitude.toString()), Toast.LENGTH_SHORT).show()
+
                     }
                     gpsCertification(location.latitude,location.longitude)
 //                        addressText.text = address?.let { "${it.adminArea} ${it.locality} ${it.thoroughfare}"
@@ -184,9 +188,10 @@ class MainHomeFragment : Fragment() {
     }
     fun smokeEvent(){
         //여기서 thread를 통해서 블루투스와의 통신
-        initializeBluetooth() //연결 갱신으로 isConnected 활성화
+        //연결 갱신으로 isConnected 활성화
         //임시코드임
         view.findViewById<LinearLayout>(R.id.smokeBtn).setOnClickListener{
+                initializeBluetooth()
                 val date = DateParse()
                 val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
                 val todayMax = sharedPreferences.getInt("smokeMaxCount"+date.getCurrentDate(), -1) //오늘의 최대값을 가져오기
