@@ -134,18 +134,18 @@ class MainHomeFragment : Fragment() {
         // 흡연구역 지정이 필요해 보임
         var canSmoke = false;
         Log.d("text","${lat},${lng}")
-        if(lat >= 37.4500700 && lat <= 37.4500800 && lng >= 126.6571 && lng <= 126.6572){
+//        if(lat >= 37.4500700 && lat <= 37.4500800 && lng >= 126.6571 && lng <= 126.6572){
+//            canSmoke = true;
+//        }else if(lat >= 37.45062 && lat <= 37.45064 && lng >= 126.6566 && lng <= 126.6567){
+//            canSmoke = true;
+//        }else
+        if(lat == 37.4219983 && lng == -122.084){
             canSmoke = true;
-        }else if(lat >= 37.45062 && lat <= 37.45064 && lng >= 126.6566 && lng <= 126.6567){
-            canSmoke = true;
-        }else if(lat == 37.4219983 && lng == -122.084){
-            canSmoke = true;
-        }else if(lat >= 37.450280 && lat <= 37.450827 && lng >= 126.656671 && lng <= 126.657510){
-            canSmoke = true;
-        }else if(lat >= 37.449987 && lat <= 37.450278 && lng >= 126.657093 && lng <= 126.657439){
+        }else if(lat >= 37.449987 && lat <= 37.450278 && lng >= 126.657093 && lng <= 126.657439){ // 작은범위(지하 흡연장)
             canSmoke = true;
         }
         // canSmoke = true;
+
         val state = view.findViewById<TextView>(R.id.rangeState)
         if(canSmoke){
             state.text = "YES"
