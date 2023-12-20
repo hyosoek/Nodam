@@ -27,12 +27,20 @@ import androidx.fragment.app.Fragment
 import com.example.mobilegpsexam.RequestPermissionsUtil
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import java.io.OutputStream
+import java.lang.Thread.sleep
 import java.util.Locale
 import java.util.UUID
 
@@ -71,6 +79,13 @@ class MainHomeFragment : Fragment() {
             // Bluetooth 권한이 이미 허용된 경우 초기화 진행
             initializeBluetooth()
         }
+        val state1 = view.findViewById<TextView>(R.id.deviceState)
+        state1.text = "OFF"
+        state1.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
+        val state2 = view.findViewById<TextView>(R.id.rangeState)
+        state2.text = "NO"
+        state2.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
+
         RequestPermissionsUtil(requireContext()).requestLocation()
         gpsRenewEvent()
         setRemainCount()
@@ -132,28 +147,82 @@ class MainHomeFragment : Fragment() {
 
     fun gpsCertification(lat: Double,lng: Double){
         // 흡연구역 지정이 필요해 보임
-        var canSmoke = false;
-        Log.d("text","${lat},${lng}")
-//        if(lat >= 37.4500700 && lat <= 37.4500800 && lng >= 126.6571 && lng <= 126.6572){
-//            canSmoke = true;
-//        }else if(lat >= 37.45062 && lat <= 37.45064 && lng >= 126.6566 && lng <= 126.6567){
-//            canSmoke = true;
-//        }else
-        if(lat == 37.4219983 && lng == -122.084){
-            canSmoke = true;
-        }else if(lat >= 37.449987 && lat <= 37.450278 && lng >= 126.657093 && lng <= 126.657439){ // 작은범위(지하 흡연장)
-            canSmoke = true;
-        }
-        // canSmoke = true;
-
         val state = view.findViewById<TextView>(R.id.rangeState)
-        if(canSmoke){
-            state.text = "YES"
-            state.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        }else{
-            state.text = "NO"
-            state.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
-        }
+        var data = ApiRequestData(lat,lng)
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://13.125.24.196:8000/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val apiService = retrofit.create(ApiInterface::class.java)
+        val call = apiService.postData(data)
+
+        var iscert = false
+        runBlocking {
+            call.enqueue(object : Callback<ApiResponseData> {
+            override fun onResponse(
+                call: Call<ApiResponseData>,
+                response: Response<ApiResponseData>
+            ) {
+                // 성공적인 응답 처리
+                Toast.makeText(requireContext(), response.toString(), Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful) {
+                    iscert = true
+                    Log.d("iscert1","${iscert}")
+                    state.text = "YES"
+                    state.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                }else{
+                    state.text = "NO"
+                    state.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponseData>, t: Throwable) {
+                // 실패 시 처리
+                Toast.makeText(
+                    requireContext(),
+                    "Load Region Information API fail",
+                    Toast.LENGTH_SHORT
+                ).show()
+                state.text = "NO"
+                state.setTextColor(ContextCompat.getColor(requireContext(), R.color.silver))
+            }
+        }) }
+        Log.d("iscert2","${iscert}")
+    }
+
+    private fun getMyData(data: ApiRequestData):Boolean{
+        var isPermitted = false
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://13.125.24.196:8000/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val apiService = retrofit.create(ApiInterface::class.java)
+        val call = apiService.postData(data)
+
+        call.enqueue(object : Callback<ApiResponseData> {
+            override fun onResponse(
+                call: Call<ApiResponseData>,
+                response: Response<ApiResponseData>
+            ) {
+                // 성공적인 응답 처리
+                Toast.makeText(requireContext(), response.toString(), Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful) {
+                    isPermitted = true
+                    Log.d("First message : ", "${isPermitted}")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponseData>, t: Throwable) {
+                // 실패 시 처리
+                Toast.makeText(
+                    requireContext(),
+                    "Load Region Information API fail",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
+        return isPermitted
     }
 
     fun gpsRenewBtnEvent(){
@@ -191,6 +260,21 @@ class MainHomeFragment : Fragment() {
         //연결 갱신으로 isConnected 활성화
         //임시코드임
         view.findViewById<LinearLayout>(R.id.smokeBtn).setOnClickListener{
+//                Log.d("blockingg1","")
+//                GlobalScope.launch(Dispatchers.Main) {
+//                    sleep(2000) // 실제로 이건 동기함수인데, 강제 비동기화
+//                    Log.d("blockingg5","")
+//                }
+//                Log.d("blockingg2","")
+//                Log.d("blockingg3","")
+//                runBlocking {
+//                    GlobalScope.launch(Dispatchers.Main) { // 비동기 함수를 동기화?
+//                        sleep(1000)
+//                        Log.d("blockingg5","")
+//                    }
+//                }
+//                Log.d("blockingg4","")
+
                 initializeBluetooth()
                 val date = DateParse()
                 val sharedPreferences = requireContext().getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
@@ -198,10 +282,7 @@ class MainHomeFragment : Fragment() {
                 val todayCurrent = sharedPreferences.getInt(date.getCurrentDate(), -1)
 
                 if(todayMax-todayCurrent == 0){
-                    val builder = AlertDialog.Builder(requireContext())
-                    builder.setTitle("금일 가능한 횟수를 소진했습니다.")
-                        .setMessage("프로필 -> 일일흡연 횟수에서 설정 가능합니다. (명일부터 적용됩니다)")
-                    builder.show()
+                    Toast.makeText(requireContext(), "흡연가능 횟수 소진", Toast.LENGTH_SHORT).show()
                 }else{
                     runBlocking { initializeBluetooth() }  //비동기처리
                     if(isConnected){
@@ -221,10 +302,7 @@ class MainHomeFragment : Fragment() {
                             builder.show()
                         }
                     }else{
-                        val builder = AlertDialog.Builder(requireContext())
-                        builder.setTitle("연결된 기기없음")
-                            .setMessage("휴대폰에 전자담배를 연결해주세요.")
-                        builder.show()
+                        Toast.makeText(requireContext(), "연결 기기 없음", Toast.LENGTH_SHORT).show()
                     }
                 }
         }
